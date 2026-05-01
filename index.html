@@ -8,44 +8,37 @@ import {
   Save, LayoutDashboard, Database
 } from 'lucide-react';
 
-// الإعدادات العامة
+// ملاحظة: تأكد من وجود ملف index.css يحتوي على توجيهات @tailwind
+// import './index.css'; 
+
 const ADMIN_EMAIL = 'saeeda.aalhammadi@moe.sch.ae'.toLowerCase();
 
 const CATEGORIES = [
-  { id: 'academic', title: 'الأكاديمي', icon: BookOpen, color: 'bg-blue-500', hex: '#3b82f6' },
-  { id: 'students', title: 'شؤون الطلبة', icon: Users, color: 'bg-green-500', hex: '#22c55e' },
-  { id: 'social', title: 'الاخصائي الاجتماعي', icon: HeartHandshake, color: 'bg-purple-500', hex: '#a855f7' },
-  { id: 'manager', title: 'إحصائيات ولوحة تحكم المديرة', icon: ShieldCheck, color: 'bg-rose-500', hex: '#f43f5e' },
+  { id: 'academic', title: 'الأكاديمي', icon: BookOpen, color: 'bg-blue-600', lightColor: 'bg-blue-50', textColor: 'text-blue-600' },
+  { id: 'students', title: 'شؤون الطلبة', icon: Users, color: 'bg-emerald-600', lightColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
+  { id: 'social', title: 'الاخصائي الاجتماعي', icon: HeartHandshake, color: 'bg-violet-600', lightColor: 'bg-violet-50', textColor: 'text-violet-600' },
+  { id: 'manager', title: 'لوحة التحكم والإحصائيات', icon: ShieldCheck, color: 'bg-rose-600', lightColor: 'bg-rose-50', textColor: 'text-rose-600' },
 ];
 
 export default function App() {
-  // --- حالات النظام (States) ---
   const [user, setUser] = useState(null);
   const [view, setView] = useState('login');
   const [selectedCategory, setSelectedCategory] = useState(null);
-  
   const [registeredUsers, setRegisteredUsers] = useState([
     { id: 'admin-main', name: 'المديرة سعيدة الحمادي', email: ADMIN_EMAIL, password: 'admin', role: 'manager' }
   ]);
-  
   const [tasks, setTasks] = useState([
-    { id: 1, category: 'academic', title: 'توزيع الجداول الدراسية', status: 'completed', fileName: 'table_v1.pdf', date: '2024-05-20' },
-    { id: 2, category: 'academic', title: 'تحليل نتائج الفصل الأول', status: 'pending', fileName: null, date: '2024-05-21' },
-    { id: 3, category: 'students', title: 'إحصائية الغياب الأسبوعية', status: 'completed', fileName: 'attendance.xlsx', date: '2024-05-18' },
+    { id: 1, category: 'academic', title: 'توزيع الجداول الدراسية الجديدة', status: 'completed', fileName: 'schedule_2024.pdf', date: '2024-05-20' },
+    { id: 2, category: 'academic', title: 'تحليل نتائج اختبارات منتصف الفصل', status: 'pending', fileName: null, date: '2024-05-21' },
+    { id: 3, category: 'students', title: 'كشف الغياب الأسبوعي للمرحلة الثانوية', status: 'completed', fileName: 'attendance_report.xlsx', date: '2024-05-18' },
   ]);
   
   const [currentDate, setCurrentDate] = useState(new Date());
   const [personalNotes, setPersonalNotes] = useState("");
-  const [calendarNotes, setCalendarNotes] = useState({});
-  const [selectedDay, setSelectedDay] = useState(null);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [loginError, setLoginError] = useState('');
   const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [showStaffDetailsModal, setShowStaffDetailsModal] = useState(false);
-  const [showAddManualModal, setShowAddManualModal] = useState(false);
-  const [manualStaffForm, setManualStaffForm] = useState({ name: '', email: '', password: '' });
   const [isProcessingExcel, setIsProcessingExcel] = useState(false);
-  const excelInputRef = useRef(null);
 
   const LOGO_MOE = "https://upload.wikimedia.org/wikipedia/ar/thumb/f/f2/Ministry_of_Education_UAE_Logo.svg/1200px-Ministry_of_Education_UAE_Logo.svg.png";
   const LOGO_COMPLEX = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6A6R4P-k9-m1S2i2N7_v1T0v1-Y_XF-y1nA&s";
@@ -56,19 +49,14 @@ export default function App() {
     e.preventDefault();
     const inputEmail = loginForm.email.trim().toLowerCase();
     const inputPass = loginForm.password.trim();
+    const foundUser = registeredUsers.find(u => u.email.toLowerCase() === inputEmail && u.password.toString() === inputPass);
 
-    const foundUser = registeredUsers.find(u => 
-      u.email.toLowerCase() === inputEmail && 
-      u.password.toString() === inputPass
-    );
-
-    if (foundUser) { 
-      setUser(foundUser); 
-      setView('dashboard'); 
+    if (foundUser) {
+      setUser(foundUser);
+      setView('dashboard');
       setLoginError('');
-      setLoginForm({ email: '', password: '' });
-    } else { 
-      setLoginError('بيانات الدخول غير صحيحة.'); 
+    } else {
+      setLoginError('خطأ في البريد الإلكتروني أو كلمة المرور');
     }
   };
 
@@ -79,15 +67,11 @@ export default function App() {
       category, 
       title: newTaskTitle, 
       status: 'pending', 
-      fileName: null,
-      date: new Date().toISOString().split('T')[0]
+      fileName: null, 
+      date: new Date().toLocaleDateString('en-CA') 
     };
     setTasks([...tasks, newTask]);
     setNewTaskTitle('');
-  };
-
-  const handleFileUploadForTask = (taskId, fileName) => {
-    setTasks(tasks.map(t => t.id === taskId ? { ...t, status: 'completed', fileName } : t));
   };
 
   const renderCalendar = () => {
@@ -98,25 +82,25 @@ export default function App() {
     const monthName = new Intl.DateTimeFormat('ar-AE', { month: 'long' }).format(currentDate);
     
     const days = [];
-    for (let i = 0; i < firstDay; i++) days.push(<div key={`e-${i}`}></div>);
+    for (let i = 0; i < firstDay; i++) days.push(<div key={`empty-${i}`}></div>);
     for (let d = 1; d <= daysInMonth; d++) {
       const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
       days.push(
-        <button key={d} className={`h-8 w-8 rounded-lg text-[10px] font-bold flex items-center justify-center transition-all ${isToday ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-slate-700 text-white'}`}>
+        <div key={d} className={`h-8 w-8 text-[10px] font-bold flex items-center justify-center rounded-lg transition-colors ${isToday ? 'bg-blue-600 text-white' : 'hover:bg-slate-700 text-slate-300'}`}>
           {d}
-        </button>
+        </div>
       );
     }
 
     return (
       <div className="space-y-4">
         <div className="flex justify-between items-center bg-slate-700/50 p-2 rounded-xl">
-          <button onClick={() => setCurrentDate(new Date(year, month - 1))}><ChevronRight size={14}/></button>
-          <span className="text-[10px] font-black">{monthName} {year}</span>
-          <button onClick={() => setCurrentDate(new Date(year, month + 1))}><ChevronLeft size={14}/></button>
+          <button onClick={() => setCurrentDate(new Date(year, month - 1))} className="hover:text-blue-400"><ChevronRight size={16}/></button>
+          <span className="text-[11px] font-black">{monthName} {year}</span>
+          <button onClick={() => setCurrentDate(new Date(year, month + 1))} className="hover:text-blue-400"><ChevronLeft size={16}/></button>
         </div>
-        <div className="grid grid-cols-7 gap-1 text-center text-[8px] font-bold text-slate-400">
-          {['ح','ن','ث','ر','خ','ج','س'].map(w => <div key={w}>{w}</div>)}
+        <div className="grid grid-cols-7 gap-1 text-center text-[9px] font-bold text-slate-500">
+          {['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'].map(w => <div key={w}>{w}</div>)}
           {days}
         </div>
       </div>
@@ -124,102 +108,147 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-right" dir="rtl">
-      {/* هيدر النظام */}
-      <header className="bg-white border-b p-4 sticky top-0 z-50 shadow-sm">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-blue-100" dir="rtl">
+      {/* هيدر احترافي */}
+      <header className="sticky top-0 z-[100] bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 py-3">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <img src={LOGO_MOE} className="h-10 md:h-12 object-contain" alt="MOE" />
-          <div className="text-center hidden md:block">
-            <h1 className="font-black text-slate-800 text-base">مجمع زايد التعليمي - السيوح</h1>
-            <p className="text-[10px] text-slate-500 font-bold">نظام الإدارة المدرسية المتكامل</p>
+          <div className="flex items-center gap-4">
+            <img src={LOGO_MOE} className="h-10 md:h-12 w-auto object-contain" alt="وزارة التربية والتعليم" />
+            <div className="hidden sm:block h-8 w-[1px] bg-slate-200 mx-2"></div>
+            <div className="hidden md:block text-right">
+              <h1 className="text-sm font-black text-slate-800 leading-tight">مجمع زايد التعليمي - السيوح</h1>
+              <p className="text-[10px] text-blue-600 font-bold tracking-tighter uppercase">Zayed Educational Complex</p>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+          
+          <div className="flex items-center gap-4">
             {user && (
-              <div className="flex items-center gap-3">
-                <div className="text-left hidden sm:block">
-                  <p className="text-[10px] font-black text-slate-800">{user.name}</p>
-                  <p className="text-[8px] text-slate-400 font-bold">{isManager ? 'المديرة' : 'موظف'}</p>
+              <div className="flex items-center gap-3 bg-slate-50 p-1.5 pr-4 rounded-2xl border border-slate-100">
+                <div className="text-left">
+                  <p className="text-[10px] font-black text-slate-800 leading-none">{user.name}</p>
+                  <p className="text-[8px] text-slate-500 font-bold mt-1">{isManager ? 'مديرة المجمع' : 'عضو الكادر'}</p>
                 </div>
-                <button onClick={() => {setUser(null); setView('login');}} className="p-2 text-rose-500 hover:bg-rose-50 rounded-full"><LogOut size={20}/></button>
+                <button onClick={() => {setUser(null); setView('login');}} className="p-2 bg-white text-rose-500 hover:bg-rose-50 rounded-xl transition-all shadow-sm">
+                  <LogOut size={18}/>
+                </button>
               </div>
             )}
-            <img src={LOGO_COMPLEX} className="h-10 md:h-12 rounded-lg shadow-sm" alt="Complex" />
+            <img src={LOGO_COMPLEX} className="h-10 md:h-12 rounded-xl shadow-md border border-white" alt="شعار المجمع" />
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto p-4 mt-6">
+      <main className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
         {view === 'login' ? (
-          <div className="flex justify-center mt-12 px-4">
-            <form onSubmit={handleLogin} className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl w-full max-w-md border border-slate-100 relative">
-              <div className="absolute top-0 left-0 w-full h-2 bg-blue-600 rounded-t-full"></div>
-              <div className="flex justify-center mb-8">
-                <div className="bg-blue-600 p-5 rounded-3xl text-white shadow-xl"><ShieldCheck size={40}/></div>
-              </div>
-              <h2 className="text-center font-black mb-8 text-xl text-slate-800">بوابة الدخول الذكية</h2>
-              <div className="space-y-4">
-                <div className="relative">
-                  <input type="email" required className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-right outline-none font-bold text-xs pr-12" placeholder="البريد الإلكتروني" value={loginForm.email} onChange={e=>setLoginForm({...loginForm, email: e.target.value})} />
-                  <UserIcon className="absolute right-4 top-4 text-slate-300" size={18}/>
+          <div className="flex flex-col items-center justify-center mt-12 md:mt-20">
+            <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <form onSubmit={handleLogin} className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl shadow-blue-900/5 border border-slate-100">
+                <div className="flex justify-center mb-8">
+                  <div className="bg-blue-600 p-5 rounded-3xl text-white shadow-lg shadow-blue-600/30">
+                    <ShieldCheck size={42}/>
+                  </div>
                 </div>
-                <input type="password" required className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-right outline-none font-bold text-xs" placeholder="كلمة المرور" value={loginForm.password} onChange={e=>setLoginForm({...loginForm, password: e.target.value})} />
-              </div>
-              {loginError && <p className="text-rose-500 text-[10px] text-center mt-4 font-black bg-rose-50 py-2 rounded-lg">{loginError}</p>}
-              <button className="w-full mt-8 bg-slate-800 hover:bg-slate-900 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95">دخول النظام</button>
-            </form>
+                <h2 className="text-center font-black text-2xl text-slate-800 mb-2">بوابة الدخول</h2>
+                <p className="text-center text-slate-400 text-xs mb-8 font-bold">يرجى إدخال البيانات الرسمية للوصول للنظام</p>
+                
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-500 mr-2">البريد الإلكتروني</label>
+                    <input type="email" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" placeholder="saeeda.aalhammadi@moe.sch.ae" value={loginForm.email} onChange={e=>setLoginForm({...loginForm, email: e.target.value})} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-500 mr-2">كلمة المرور</label>
+                    <input type="password" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" placeholder="••••••••" value={loginForm.password} onChange={e=>setLoginForm({...loginForm, password: e.target.value})} />
+                  </div>
+                </div>
+
+                {loginError && <p className="text-rose-500 text-[11px] text-center mt-4 font-black bg-rose-50 py-2.5 rounded-xl border border-rose-100">{loginError}</p>}
+                
+                <button className="w-full mt-8 bg-slate-900 hover:bg-blue-700 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98]">
+                  تسجيل الدخول للنظام
+                </button>
+                <p className="text-center mt-6 text-[10px] text-slate-400 font-bold">نظام الإدارة الداخلي - مجمع زايد التعليمي</p>
+              </form>
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-8 space-y-6">
               {view === 'dashboard' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in zoom-in-95 duration-500">
                   {CATEGORIES.map(cat => {
                     if (cat.id === 'manager' && !isManager) return null;
                     return (
                       <button key={cat.id} onClick={() => { setSelectedCategory(cat); setView('category'); }} 
-                        className="bg-white p-8 rounded-[2.5rem] border border-slate-100 hover:shadow-xl transition-all text-right group relative overflow-hidden">
-                        <div className={`${cat.color} w-14 h-14 rounded-2xl text-white mb-6 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110`}><cat.icon size={28}/></div>
-                        <h4 className="font-black text-slate-800 text-lg mb-2">{cat.title}</h4>
-                        <p className="text-[10px] text-slate-400 font-bold leading-relaxed">إدارة وتتبع كافة ملفات قسم {cat.title} وتحديثات العمل اليومي.</p>
-                        <div className="absolute bottom-0 right-0 w-24 h-24 bg-slate-50 -mr-12 -mb-12 rounded-full opacity-50"></div>
+                        className="group bg-white p-8 rounded-[2.5rem] border border-slate-200 hover:border-blue-400 hover:shadow-2xl transition-all text-right relative overflow-hidden">
+                        <div className={`${cat.color} w-16 h-16 rounded-2xl text-white mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-transform`}>
+                          <cat.icon size={30}/>
+                        </div>
+                        <h4 className="font-black text-slate-800 text-xl mb-3">{cat.title}</h4>
+                        <p className="text-[11px] text-slate-500 font-bold leading-relaxed mb-4">إدارة التكاليف، التقارير الأسبوعية، والملفات الخاصة بقسم {cat.title}.</p>
+                        <div className="flex items-center text-blue-600 font-black text-[10px] gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          دخول القسم <ChevronLeft size={14}/>
+                        </div>
+                        <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-slate-50 rounded-full group-hover:bg-blue-50 transition-colors"></div>
                       </button>
                     );
                   })}
                 </div>
               ) : (
-                <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 min-h-[500px] shadow-sm">
-                  <div className="flex justify-between items-center mb-8 border-b pb-6">
-                    <div className="flex items-center gap-4">
-                      <div className={`${selectedCategory?.color} p-3 rounded-xl text-white`}><selectedCategory.icon size={20}/></div>
-                      <h2 className="font-black text-lg text-slate-800">{selectedCategory?.title}</h2>
+                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm min-h-[600px] animate-in slide-in-from-left-4 duration-500">
+                  <div className="flex justify-between items-center mb-10 border-b border-slate-100 pb-6">
+                    <div className="flex items-center gap-5">
+                      <div className={`${selectedCategory?.color} p-4 rounded-2xl text-white shadow-md`}>
+                        <selectedCategory.icon size={26}/>
+                      </div>
+                      <div>
+                        <h2 className="font-black text-2xl text-slate-800 leading-none">{selectedCategory?.title}</h2>
+                        <p className="text-slate-400 text-[10px] font-bold mt-2">إدارة المهام والوثائق الرسمية</p>
+                      </div>
                     </div>
-                    <button onClick={() => setView('dashboard')} className="text-[10px] bg-slate-100 px-5 py-2 rounded-xl font-black hover:bg-slate-200 transition-colors">إغلاق القسم</button>
+                    <button onClick={() => setView('dashboard')} className="flex items-center gap-2 text-[11px] bg-slate-100 hover:bg-slate-200 px-6 py-2.5 rounded-xl font-black transition-colors">
+                      <ChevronRight size={16}/> العودة للرئيسية
+                    </button>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-8">
                     {isManager && selectedCategory?.id !== 'manager' && (
-                      <div className="flex gap-2 bg-slate-50 p-2 rounded-2xl">
-                        <input className="flex-1 bg-transparent p-3 rounded-xl text-xs font-bold outline-none" placeholder="إضافة تكليف جديد للقسم..." value={newTaskTitle} onChange={e=>setNewTaskTitle(e.target.value)} />
-                        <button onClick={()=>addTask(selectedCategory.id)} className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-xl font-black text-xs transition-colors">حفظ</button>
+                      <div className="bg-slate-50 p-3 rounded-[2rem] border border-slate-100 flex gap-2">
+                        <input className="flex-1 bg-transparent px-4 py-3 text-xs font-bold outline-none" placeholder="اكتب عنوان التكليف الجديد هنا..." value={newTaskTitle} onChange={e=>setNewTaskTitle(e.target.value)} />
+                        <button onClick={()=>addTask(selectedCategory.id)} className="bg-slate-900 hover:bg-blue-600 text-white px-8 rounded-2xl font-black text-xs transition-all flex items-center gap-2">
+                          <Plus size={16}/> إضافة
+                        </button>
                       </div>
                     )}
                     
-                    <div className="space-y-3">
+                    <div className="space-y-4">
+                      <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">قائمة التكاليف الحالية</h5>
+                      {tasks.filter(t => t.category === selectedCategory?.id).length === 0 && (
+                        <div className="py-12 text-center text-slate-300 font-bold text-xs italic">لا توجد تكاليف مضافة حالياً في هذا القسم</div>
+                      )}
                       {tasks.filter(t => t.category === selectedCategory?.id).map(t => (
-                        <div key={t.id} className="p-5 border border-slate-50 rounded-3xl flex justify-between items-center hover:border-blue-100 bg-white transition-all group shadow-sm">
-                          <div className="flex items-center gap-4">
-                            <div className={t.status === 'completed' ? 'text-green-500 bg-green-50 p-2.5 rounded-xl' : 'text-amber-500 bg-amber-50 p-2.5 rounded-xl'}>
-                              {t.status === 'completed' ? <CheckCircle2 size={20}/> : <Clock size={20}/>}
+                        <div key={t.id} className="group p-6 bg-white border border-slate-100 rounded-[2rem] flex justify-between items-center hover:border-blue-200 hover:shadow-md transition-all">
+                          <div className="flex items-center gap-5">
+                            <div className={`p-3 rounded-2xl ${t.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                              {t.status === 'completed' ? <CheckCircle2 size={22}/> : <Clock size={22}/>}
                             </div>
                             <div>
-                              <span className="text-xs font-black block text-slate-800">{t.title}</span>
-                              <span className="text-[9px] text-slate-400 font-bold">التاريخ: {t.date} {t.fileName && `| المرفق: ${t.fileName}`}</span>
+                              <span className="text-sm font-black text-slate-800 block mb-1">{t.title}</span>
+                              <div className="flex gap-3 text-[9px] font-bold text-slate-400">
+                                <span className="flex items-center gap-1"><CalendarIcon size={12}/> {t.date}</span>
+                                {t.fileName && <span className="flex items-center gap-1 text-blue-500 bg-blue-50 px-2 py-0.5 rounded-md"><FileCheck size={12}/> {t.fileName}</span>}
+                              </div>
                             </div>
                           </div>
                           {!isManager && t.status !== 'completed' && (
-                            <label className="cursor-pointer bg-slate-800 hover:bg-slate-900 text-white px-5 py-2 rounded-xl text-[9px] font-black shadow-md transition-all">
-                              إرفاق الإنجاز <input type="file" className="hidden" onChange={e=>handleFileUploadForTask(t.id, e.target.files[0]?.name)} />
+                            <label className="cursor-pointer bg-slate-900 hover:bg-blue-600 text-white px-6 py-2.5 rounded-xl text-[10px] font-black transition-all shadow-sm">
+                              رفع ملف الإنجاز <input type="file" className="hidden" />
                             </label>
+                          )}
+                          {isManager && (
+                            <button className="text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all p-2">
+                              <Trash2 size={18}/>
+                            </button>
                           )}
                         </div>
                       ))}
@@ -230,24 +259,62 @@ export default function App() {
             </div>
 
             <div className="lg:col-span-4 space-y-6">
-              {/* التقويم الجانبي */}
-              <div className="bg-slate-800 p-6 rounded-[2.5rem] text-white shadow-xl">
-                <h3 className="text-[11px] font-black mb-6 flex items-center gap-2 text-blue-400 border-b border-white/10 pb-4"><CalendarIcon size={16}/> أجندة المجمع</h3>
+              {/* التقويم الجانبي الداكن */}
+              <div className="bg-[#1e293b] p-7 rounded-[2.5rem] text-white shadow-2xl shadow-slate-900/20">
+                <div className="flex items-center gap-3 mb-6 border-b border-slate-700 pb-4">
+                  <div className="bg-blue-500/20 p-2 rounded-lg"><CalendarIcon size={18} className="text-blue-400"/></div>
+                  <h3 className="text-xs font-black uppercase tracking-tight">التقويم المدرسي</h3>
+                </div>
                 {renderCalendar()}
               </div>
 
-              {/* الملاحظات السريعة */}
-              <div className="bg-amber-50 p-6 rounded-[2.5rem] border border-amber-100">
-                <h3 className="font-black text-[11px] mb-4 flex items-center gap-2 text-amber-700"><StickyNote size={16}/> ملاحظات إدارية</h3>
-                <textarea className="w-full h-32 bg-white/60 p-4 rounded-2xl text-[10px] font-bold outline-none border border-amber-200/50 resize-none shadow-inner" placeholder="اكتبي تذكير هنا..." value={personalNotes} onChange={e=>setPersonalNotes(e.target.value)}></textarea>
-                <div className="mt-3 flex justify-end">
-                   <button className="text-[9px] bg-amber-200 text-amber-800 px-4 py-1.5 rounded-lg font-black hover:bg-amber-300 transition-colors">حفظ المسودة</button>
+              {/* ملاحظات المديرة السريعة */}
+              <div className="bg-amber-50 p-7 rounded-[2.5rem] border border-amber-100 shadow-sm relative overflow-hidden">
+                <div className="flex items-center gap-2 mb-4 text-amber-700">
+                  <StickyNote size={18}/>
+                  <h3 className="font-black text-xs">مفكرة المديرة</h3>
+                </div>
+                <textarea className="w-full h-44 bg-white/40 p-4 rounded-2xl text-[11px] font-bold text-slate-700 outline-none border border-amber-200 focus:border-amber-400 focus:bg-white transition-all resize-none shadow-inner" placeholder="اكتبي الملاحظات الهامة هنا..." value={personalNotes} onChange={e=>setPersonalNotes(e.target.value)}></textarea>
+                <div className="mt-4 flex justify-between items-center">
+                  <span className="text-[9px] text-amber-600 font-bold italic">يتم الحفظ تلقائياً...</span>
+                  <button className="bg-amber-200 hover:bg-amber-300 text-amber-800 p-2 rounded-xl transition-colors"><Save size={16}/></button>
+                </div>
+                <div className="absolute -top-4 -left-4 w-12 h-12 bg-amber-200/20 rounded-full blur-xl"></div>
+              </div>
+
+              {/* حالة النظام */}
+              <div className="bg-white p-6 rounded-[2.5rem] border border-slate-200 text-center">
+                <div className="flex justify-around">
+                  <div>
+                    <p className="text-[18px] font-black text-slate-800">{tasks.length}</p>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase">إجمالي المهام</p>
+                  </div>
+                  <div className="w-[1px] bg-slate-100"></div>
+                  <div>
+                    <p className="text-[18px] font-black text-emerald-600">{tasks.filter(t=>t.status==='completed').length}</p>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase">مكتملة</p>
+                  </div>
+                  <div className="w-[1px] bg-slate-100"></div>
+                  <div>
+                    <p className="text-[18px] font-black text-amber-500">{tasks.filter(t=>t.status==='pending').length}</p>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase">قيد التنفيذ</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         )}
       </main>
+
+      {/* تنسيقات CSS إضافية للتحسين */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700;900&display=swap');
+        body { font-family: 'Noto Sans Arabic', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+      `}</style>
     </div>
   );
 }
